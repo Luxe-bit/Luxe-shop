@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUXE SHOP</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --void: #000000;
+            --deep: #080510;
+            --surface: #0d0a1a;
+            --glass-bg: rgba(255,255,255,0.042);
+            --glass-border: rgba(255,255,255,0.09);
+            --glass-border-bright: rgba(255,255,255,0.18);
+            --purple-core: #7c3aed;
+            --purple-glow: #9d5cff;
+            --purple-soft: #c4b5fd;
+            --accent-cool: #38bdf8;
+            --text-primary: #f0ecff;
+            --text-muted: rgba(200,195,220,0.55);
+            --card-radius: 28px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--void);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        .bg-canvas {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        }
+        .bg-canvas::before {
+            content: '';
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% -10%, rgba(124,58,237,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 110%, rgba(56,189,248,0.08) 0%, transparent 55%),
+                radial-gradient(ellipse 100% 80% at 50% 50%, rgba(8,5,16,1) 0%, #000 100%);
+        }
+        .bg-canvas::after {
+            content: '';
+            position: absolute; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='300' height='300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            opacity: 0.4;
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px) saturate(1.8);
+            -webkit-backdrop-filter: blur(40px) saturate(1.8);
+            border: 1px solid var(--glass-border);
+        }
+        .glass-bright {
+            background: rgba(255,255,255,0.065);
+            backdrop-filter: blur(50px) saturate(2);
+            -webkit-backdrop-filter: blur(50px) saturate(2);
+            border: 1px solid var(--glass-border-bright);
+        }
+
+        #mainNav {
+            position: fixed; top: 0; width: 100%; z-index: 100;
+            padding: 0 32px;
+            height: 68px;
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(28px) saturate(1.6);
+            -webkit-backdrop-filter: blur(28px) saturate(1.6);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            transition: background 0.4s ease;
+        }
+        #mainNav.scrolled { background: rgba(4,2,10,0.82); }
+
+        .nav-logo {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800; font-size: 1.35rem; letter-spacing: -0.04em;
+            background: linear-gradient(135deg, #fff 30%, var(--purple-soft) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            cursor: pointer;
+        }
+        .nav-logo span {
+            background: linear-gradient(135deg, var(--purple-glow) 0%, var(--accent-cool) 100%);
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .search-wrap { position: relative; }
+        .search-wrap svg {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            opacity: 0.45; pointer-events: none; width: 15px; height: 15px;
+        }
+        #searchInput {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 999px;
+            padding: 8px 16px 8px 36px;
+            color: #fff; font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none;
+            width: 140px;
+            transition: width 0.5s cubic-bezier(0.25,1,0.5,1), background 0.3s, border-color 0.3s;
+        }
+        #searchInput::placeholder { color: rgba(255,255,255,0.35); }
+        #searchInput:focus {
+            width: 260px; background: rgba(255,255,255,0.12);
+            border-color: rgba(124,58,237,0.6); box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+        }
+
+        .btn-auth {
+            font-family: 'Syne', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: 0.04em;
+            padding: 9px 22px; border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(230,220,255,0.9) 100%);
+            color: #0d0a1a; cursor: pointer; transition: all 0.3s ease;
+            position: relative; overflow: hidden;
+        }
+        .btn-auth::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(56,189,248,0.1));
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .btn-auth:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(124,58,237,0.3), 0 2px 8px rgba(0,0,0,0.3); border-color: rgba(196,181,253,0.5); }
+        .btn-auth:hover::after { opacity: 1; }
+        .btn-auth:active { transform: translateY(0); }
+
+        .nav-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--purple-core), var(--accent-cool));
+            border: 1.5px solid rgba(196,181,253,0.4);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px;
+            cursor: pointer; box-shadow: 0 0 20px rgba(124,58,237,0.4); transition: all 0.3s;
+        }
+        .nav-avatar:hover { transform: scale(1.08); box-shadow: 0 0 30px rgba(124,58,237,0.6); }
+
+        #heroSection {
+            padding-top: 140px; padding-bottom: 24px;
+            text-align: center; position: relative; z-index: 1;
+        }
+        .hero-eyebrow {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase;
+            color: var(--purple-soft);
+            border: 1px solid rgba(196,181,253,0.2);
+            padding: 6px 16px; border-radius: 999px;
+            background: rgba(124,58,237,0.1); margin-bottom: 28px;
+        }
+        .hero-eyebrow::before {
+            content: ''; width: 6px; height: 6px; border-radius: 50%;
+            background: var(--purple-glow); box-shadow: 0 0 8px var(--purple-glow);
+            animation: pulse-dot 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0%,100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.7); }
+        }
+        .hero-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.8rem, 6vw, 5rem); font-weight: 800;
+            line-height: 1.0; letter-spacing: -0.04em;
+            background: linear-gradient(160deg, #ffffff 0%, rgba(196,181,253,0.9) 50%, rgba(56,189,248,0.8) 100%);
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 18px;
+        }
+        .hero-sub {
+            font-size: 1rem; font-weight: 300; color: var(--text-muted);
+            max-width: 480px; margin: 0 auto 48px; line-height: 1.7;
+        }
+
+        .page { display: none; opacity: 0; position: relative; z-index: 1; }
+        .page-active { display: block; opacity: 1; }
+
+        #productGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .product-card {
+            border-radius: var(--card-radius);
+            background: rgba(255,255,255,0.038);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            overflow: hidden;
+            transition: transform 0.45s cubic-bezier(0.25,1,0.5,1), box-shadow 0.45s ease, border-color 0.3s;
+            position: relative; cursor: pointer; will-change: transform;
+        }
+        .product-card::before {
+            content: ''; position: absolute; inset: 0; z-index: 0;
+            background: linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(56,189,248,0.04) 100%);
+            opacity: 0; transition: opacity 0.4s;
+        }
+        .product-card:hover { transform: translateY(-8px) scale(1.012); box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 60px rgba(124,58,237,0.12); border-color: rgba(196,181,253,0.22); }
+        .product-card:hover::before { opacity: 1; }
+
+        .card-img-wrap { width: 100%; height: 220px; overflow: hidden; position: relative; }
+        .card-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s cubic-bezier(0.25,1,0.5,1); will-change: transform; }
+        .product-card:hover .card-img-wrap img { transform: scale(1.07); }
+        .card-img-wrap::after {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 60%;
+            background: linear-gradient(to top, rgba(8,5,16,0.7), transparent);
+        }
+
+        .card-body { padding: 20px 22px 22px; position: relative; z-index: 1; }
+        .card-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 1.05rem; letter-spacing: -0.02em; margin-bottom: 6px; }
+        .card-price {
+            font-size: 0.95rem; font-weight: 500;
+            background: linear-gradient(90deg, var(--purple-glow), var(--accent-cool));
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+
+        .discount-badge {
+            position: absolute; top: 16px; right: 16px;
+            background: linear-gradient(135deg, #ff2d55, #ff6b35);
+            color: white; padding: 4px 11px;
+            border-radius: 999px; font-weight: 700; font-size: 11px; letter-spacing: 0.04em;
+            box-shadow: 0 4px 15px rgba(255,45,85,0.4); z-index: 10;
+        }
+
+        .btn-order {
+            width: 100%; padding: 13px; border-radius: 14px;
+            font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; letter-spacing: 0.04em;
+            background: linear-gradient(135deg, #fff 0%, rgba(220,210,255,0.95) 100%);
+            color: #0d0a1a; border: none; cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25,1,0.5,1);
+            position: relative; overflow: hidden;
+        }
+        .btn-order::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(124,58,237,0.12), transparent);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .btn-order:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(124,58,237,0.3); }
+        .btn-order:hover::after { opacity: 1; }
+        .btn-order:active { transform: scale(0.98); }
+
+        #adminPage { max-width: 900px; margin: 0 auto; padding-top: 100px; padding-bottom: 60px; }
+        .admin-header {
+            font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; letter-spacing: -0.04em;
+            background: linear-gradient(135deg, #fff, var(--purple-soft));
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 28px; text-align: center;
+        }
+        .admin-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.09);
+            backdrop-filter: blur(40px); border-radius: 24px;
+            padding: 32px; margin-bottom: 24px;
+        }
+        .admin-input {
+            width: 100%; padding: 13px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; color: white;
+            font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none;
+            transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+        }
+        .admin-input:focus { border-color: rgba(124,58,237,0.6); background: rgba(124,58,237,0.06); box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+        .admin-input::placeholder { color: rgba(255,255,255,0.28); }
+
+        .btn-publish {
+            width: 100%; padding: 15px;
+            background: linear-gradient(135deg, var(--purple-core) 0%, #9333ea 50%, var(--accent-cool) 100%);
+            background-size: 200% 200%;
+            border: none; border-radius: 14px; color: white;
+            font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.06em;
+            cursor: pointer; transition: all 0.4s ease;
+            box-shadow: 0 8px 30px rgba(124,58,237,0.35);
+        }
+        .btn-publish:hover { background-position: right center; transform: translateY(-2px); box-shadow: 0 16px 50px rgba(124,58,237,0.5); }
+        .btn-publish:active { transform: scale(0.98); }
+
+        .btn-back {
+            width: 100%; padding: 12px; background: transparent;
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+            color: rgba(255,255,255,0.45);
+            font-family: 'DM Sans', sans-serif; font-size: 13px;
+            cursor: pointer; margin-top: 10px; transition: all 0.3s;
+        }
+        .btn-back:hover { border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); }
+
+        .manage-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px; margin-bottom: 10px;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .manage-item:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.13); }
+        .manage-item img { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; }
+        .btn-delete {
+            color: #ff3b5c; background: rgba(255,59,92,0.1);
+            border: 1px solid rgba(255,59,92,0.2);
+            padding: 8px 16px; border-radius: 10px;
+            font-family: 'Syne', sans-serif; font-weight: 600; font-size: 12px;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .btn-delete:hover { background: #ff3b5c; color: white; box-shadow: 0 6px 20px rgba(255,59,92,0.4); }
+
+        #setPage { max-width: 520px; margin: 0 auto; padding-top: 120px; padding-bottom: 60px; }
+        .settings-card {
+            background: rgba(255,255,255,0.045);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(50px); border-radius: 28px; padding: 40px;
+        }
+        .settings-email { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 1.1rem; text-align: center; margin-bottom: 28px; color: var(--purple-soft); }
+        .btn-settings-item {
+            width: 100%; padding: 15px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 14px; color: #fff;
+            font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 400;
+            text-align: left; cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
+        }
+        .btn-settings-item:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.15); transform: translateX(4px); }
+        .btn-logout {
+            width: 100%; padding: 15px 20px;
+            background: rgba(255,59,92,0.08);
+            border: 1px solid rgba(255,59,92,0.2);
+            border-radius: 14px; color: #ff3b5c;
+            font-family: 'Syne', sans-serif; font-weight: 600; font-size: 14px;
+            cursor: pointer; transition: all 0.3s; margin-top: 8px;
+        }
+        .btn-logout:hover { background: rgba(255,59,92,0.18); box-shadow: 0 8px 25px rgba(255,59,92,0.2); }
+
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,0.75); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            display: none; align-items: center; justify-content: center; padding: 24px;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            width: 100%; max-width: 440px;
+            background: rgba(12,8,22,0.92);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 28px; padding: 40px 36px; position: relative;
+            box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 80px rgba(124,58,237,0.1);
+        }
+        .modal-title {
+            font-family: 'Syne', sans-serif; font-size: 1.75rem; font-weight: 800; letter-spacing: -0.04em;
+            margin-bottom: 28px;
+            background: linear-gradient(135deg, #fff, var(--purple-soft));
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .input-group { margin-bottom: 14px; }
+        .input-group input {
+            width: 100%; padding: 14px 16px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; color: #fff;
+            font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: all 0.3s;
+        }
+        .input-group input::placeholder { color: rgba(255,255,255,0.28); }
+        .input-group input:focus { border-color: rgba(124,58,237,0.65); background: rgba(124,58,237,0.07); box-shadow: 0 0 0 3px rgba(124,58,237,0.12); }
+        .auth-btn-group { display: flex; gap: 10px; margin-top: 6px; }
+        .btn-login-primary {
+            flex: 1; padding: 14px;
+            background: linear-gradient(135deg, #fff 0%, rgba(220,210,255,0.95) 100%);
+            border: none; border-radius: 12px; color: #0d0a1a;
+            font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .btn-login-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 35px rgba(255,255,255,0.2); }
+        .btn-register {
+            flex: 1; padding: 14px; background: transparent;
+            border: 1px solid rgba(255,255,255,0.18); border-radius: 12px; color: #fff;
+            font-family: 'Syne', sans-serif; font-weight: 600; font-size: 14px;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .btn-register:hover { background: rgba(255,255,255,0.07); border-color: rgba(196,181,253,0.4); }
+        .auth-switcher { text-align: center; font-size: 13px; color: var(--purple-soft); margin-top: 20px; cursor: pointer; transition: color 0.2s; }
+        .auth-switcher:hover { color: #e2d9ff; }
+        .btn-modal-close {
+            position: absolute; top: 20px; right: 20px;
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5);
+            font-size: 16px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-modal-close:hover { background: rgba(255,255,255,0.14); color: #fff; }
+
+        #orderOverlay {
+            position: fixed; inset: 0; z-index: 210;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+            display: none; align-items: center; justify-content: center; padding: 24px;
+        }
+        #orderOverlay.show { display: flex; }
+        .order-box {
+            width: 100%; max-width: 420px;
+            background: rgba(8,5,16,0.95);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 28px; padding: 36px 32px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.7), 0 0 60px rgba(56,189,248,0.06);
+        }
+        .order-title {
+            font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800;
+            letter-spacing: -0.03em; margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff, rgba(56,189,248,0.85));
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .btn-confirm-store {
+            width: 100%; padding: 15px;
+            background: linear-gradient(135deg, #059669, #10b981);
+            border: none; border-radius: 14px; color: white;
+            font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px;
+            cursor: pointer; transition: all 0.3s;
+            box-shadow: 0 8px 28px rgba(16,185,129,0.3);
+        }
+        .btn-confirm-store:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(16,185,129,0.45); }
+        .btn-cancel {
+            width: 100%; padding: 12px; background: transparent; border: none;
+            color: rgba(255,255,255,0.35);
+            font-family: 'DM Sans', sans-serif; font-size: 13px;
+            cursor: pointer; margin-top: 10px; transition: color 0.2s;
+        }
+        .btn-cancel:hover { color: rgba(255,255,255,0.65); }
+
+        #bottomNav {
+            position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+            background: rgba(8,5,16,0.7);
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 999px; padding: 12px 32px;
+            display: flex; align-items: center; gap: 32px;
+            z-index: 50;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04) inset;
+        }
+        .nav-tab {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            cursor: pointer; opacity: 0.45;
+            transition: opacity 0.3s, transform 0.3s;
+            background: none; border: none; color: #fff; font-size: 18px;
+        }
+        .nav-tab:hover { opacity: 0.8; transform: translateY(-2px); }
+        .nav-tab.active { opacity: 1; }
+        .nav-tab-dot {
+            width: 4px; height: 4px; border-radius: 50%;
+            background: var(--purple-glow); box-shadow: 0 0 8px var(--purple-glow);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .nav-tab.active .nav-tab-dot { opacity: 1; }
+
+        .empty-state { grid-column: 1 / -1; text-align: center; padding: 80px 20px; color: var(--text-muted); }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.4; }
+        .empty-state p { font-size: 1rem; }
+
+        .card-desc {
+            font-size: 0.8rem; font-weight: 300; color: var(--text-muted);
+            line-height: 1.55; margin-bottom: 10px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+
+        .reveal { opacity: 0; transform: translateY(30px); }
+
+        #order-status-box {
+            position: fixed; top: 80px; right: 20px; z-index: 999;
+            display: none; min-width: 260px; max-width: 340px;
+        }
+
+        /* CHECKOUT CSS */
+        #checkout-page {
+            position: relative; z-index: 1;
+            width: 100%; min-height: 100vh;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 20px 80px;
+        }
+        #checkout-page.co-active {
+            display: flex;
+        }
+
+        .checkout-wrap {
+            position: relative; z-index: 1;
+            width: 100%; max-width: 520px;
+        }
+
+        .back-link {
+            display: inline-flex; align-items: center; gap: 8px;
+            color: var(--text-muted); font-size: 13px; text-decoration: none;
+            margin-bottom: 28px; transition: color 0.2s; cursor: pointer;
+            background: none; border: none;
+        }
+        .back-link:hover { color: var(--purple-soft); }
+
+        .summary-card {
+            background: rgba(255,255,255,0.038);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border-radius: 22px; padding: 20px 22px; margin-bottom: 20px;
+            display: flex; align-items: center; gap: 16px;
+        }
+        .summary-img {
+            width: 64px; height: 64px; border-radius: 14px;
+            object-fit: cover; flex-shrink: 0;
+            background: rgba(255,255,255,0.06);
+        }
+        .summary-name {
+            font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem;
+            letter-spacing: -0.02em; margin-bottom: 4px;
+        }
+        .summary-price {
+            font-size: 0.9rem;
+            background: linear-gradient(90deg, var(--purple-glow), var(--accent-cool));
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .summary-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff2d55, #ff6b35);
+            color: white; padding: 2px 9px;
+            border-radius: 999px; font-weight: 700; font-size: 10px; margin-left: 8px;
+        }
+
+        .form-card {
+            background: rgba(255,255,255,0.038);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border-radius: 28px; padding: 36px 32px;
+        }
+        .form-title {
+            font-family: 'Syne', sans-serif; font-size: 1.65rem; font-weight: 800; letter-spacing: -0.04em;
+            margin-bottom: 6px;
+            background: linear-gradient(135deg, #fff, var(--purple-soft));
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .form-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; }
+
+        .section-label {
+            font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700;
+            letter-spacing: 0.14em; text-transform: uppercase;
+            color: var(--purple-soft); margin-bottom: 10px; margin-top: 24px; opacity: 0.8;
+        }
+        .section-label:first-of-type { margin-top: 0; }
+
+        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .field-row.single { grid-template-columns: 1fr; }
+        .field { display: flex; flex-direction: column; gap: 5px; }
+        .field label { font-size: 11px; color: var(--text-muted); letter-spacing: 0.04em; }
+
+        .inp, .sel {
+            padding: 13px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; color: #fff;
+            font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; width: 100%;
+            transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+            appearance: none; -webkit-appearance: none;
+        }
+        .inp::placeholder, .sel::placeholder { color: rgba(255,255,255,0.28); }
+        .inp:focus, .sel:focus { border-color: rgba(124,58,237,0.65); background: rgba(124,58,237,0.07); box-shadow: 0 0 0 3px rgba(124,58,237,0.12); }
+        .sel-wrap { position: relative; }
+        .sel-wrap::after {
+            content: '▾'; position: absolute; right: 14px; top: 50%;
+            transform: translateY(-50%); color: rgba(255,255,255,0.35);
+            pointer-events: none; font-size: 13px;
+        }
+        .sel { padding-right: 36px; cursor: pointer; }
+        .sel option { background: #0d0a1a; color: #fff; }
+        .sel:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        .btn-confirm {
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, var(--purple-core) 0%, #9333ea 50%, var(--accent-cool) 100%);
+            background-size: 200% 200%;
+            border: none; border-radius: 14px; color: white;
+            font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.05em;
+            cursor: pointer; margin-top: 28px; transition: all 0.4s ease;
+            box-shadow: 0 8px 30px rgba(124,58,237,0.35);
+            position: relative; overflow: hidden;
+        }
+        .btn-confirm:hover { background-position: right center; transform: translateY(-2px); box-shadow: 0 16px 50px rgba(124,58,237,0.5); }
+        .btn-confirm:active { transform: scale(0.98); }
+        .btn-confirm:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        #successView { display: none; text-align: center; padding: 60px 20px; }
+        .success-icon {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: linear-gradient(135deg, #059669, #10b981);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; margin: 0 auto 24px;
+            box-shadow: 0 0 50px rgba(16,185,129,0.4);
+        }
+        .success-title {
+            font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; margin-bottom: 10px;
+            background: linear-gradient(135deg, #34d399, #10b981);
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .success-sub { color: var(--text-muted); font-size: 14px; line-height: 1.7; }
+        .btn-back-home {
+            display: inline-block; margin-top: 28px; padding: 13px 32px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.13);
+            border-radius: 999px; color: #fff;
+            font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px;
+            text-decoration: none; transition: all 0.3s; cursor: pointer;
+        }
+        .btn-back-home:hover { background: rgba(255,255,255,0.13); }
+
+        #co-errorMsg {
+            display: none;
+            background: rgba(255,59,92,0.1);
+            border: 1px solid rgba(255,59,92,0.25);
+            border-radius: 12px; padding: 12px 16px;
+            color: #ff6b83; font-size: 13px; margin-top: 16px;
+        }
+
+        .skeleton {
+            background: rgba(255,255,255,0.06);
+            border-radius: 8px; animation: shimmer 1.4s infinite;
+        }
+        @keyframes shimmer {
+            0%,100% { opacity: 0.4; }
+            50% { opacity: 0.9; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-canvas"></div>
+
+<div id="order-status-box" class="glass-bright p-5 rounded-2xl shadow-2xl">
+    <p id="status-text" class="font-bold text-sm"></p>
+    <p id="status-date" class="text-xs opacity-60 mt-1"></p>
+</div>
+
+<!-- HOME PAGE -->
+<div id="home-page">
+
+    <nav id="mainNav">
+        <div class="nav-logo" onclick="goHome()">LUXE<span>.</span></div>
+        <div style="display:flex;align-items:center;gap:14px;">
+            <div class="search-wrap">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="8.5" cy="8.5" r="5.5"/><path d="M15 15l-3-3"/>
+                </svg>
+                <input type="text" id="searchInput" oninput="searchProduct()" placeholder="Search">
+            </div>
+            <div id="navUserArea" onclick="switchPage('setPage')" class="nav-avatar hidden">
+                <span id="navInitial"></span>
+            </div>
+            <button onclick="showAuth()" id="navLoginBtn" class="btn-auth">Sign In</button>
+        </div>
+    </nav>
+
+    <main style="padding:0 24px 120px;position:relative;z-index:1;">
+        <div style="max-width:1400px;margin:0 auto;">
+
+            <section id="homePage" class="page page-active">
+                <div id="heroSection">
+                    <div class="hero-eyebrow">Curated Collection</div>
+                    <h1 class="hero-title">Discover the<br>Extraordinary</h1>
+                    <p class="hero-sub">Hand-picked luxury items crafted for those who appreciate the finest things.</p>
+                </div>
+                <div id="productGrid"></div>
+            </section>
+
+            <section id="adminPage" class="page">
+                <h2 class="admin-header">Admin Panel</h2>
+                <div class="admin-card">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                        <input type="text" id="prodName" placeholder="Product Name" class="admin-input">
+                        <input type="number" id="prodPrice" placeholder="Price ($)" class="admin-input">
+                        <input type="number" id="prodDiscount" placeholder="Discount (%)" class="admin-input">
+                        <input type="text" id="prodImgUrl" placeholder="Image URL" class="admin-input">
+                    </div>
+                    <textarea id="prodDesc" placeholder="Description (optional)" rows="2" class="admin-input" style="margin-bottom:16px;resize:vertical;"></textarea>
+                    <button id="uploadBtn" class="btn-publish">✦ Publish Product</button>
+                    <button onclick="switchPage('homePage')" class="btn-back">← Back to Store</button>
+                </div>
+                <div class="admin-card">
+                    <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:18px;opacity:0.85;">Manage Products</h3>
+                    <div id="adminProductList"></div>
+                </div>
+            </section>
+
+            <section id="setPage" class="page">
+                <div id="loggedInContent" class="settings-card hidden">
+                    <div style="text-align:center;margin-bottom:28px;">
+                        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--purple-core),var(--accent-cool));margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;box-shadow:0 0 40px rgba(124,58,237,0.4);" id="avatarBig"></div>
+                        <p class="settings-email" id="userEmailDisplay"></p>
+                    </div>
+                    <button onclick="switchPage('adminPage')" class="btn-settings-item">
+                        <span style="font-size:16px;">⚡</span> Admin Dashboard
+                    </button>
+                    <button onclick="handleLogout()" class="btn-logout">Sign Out</button>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <div id="orderOverlay">
+        <div class="order-box">
+            <h2 class="order-title">Complete Order</h2>
+            <form action="https://formspree.io/f/xzdowodp" method="POST" style="display:flex;flex-direction:column;gap:12px;">
+                <input type="hidden" name="Product" id="orderItemName">
+                <input type="text" name="Name" placeholder="Your Name" required style="padding:13px 16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;" onfocus="this.style.borderColor='rgba(56,189,248,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+                <input type="tel" name="Phone" placeholder="Your Phone" required style="padding:13px 16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;" onfocus="this.style.borderColor='rgba(56,189,248,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+                <textarea name="Address" placeholder="Delivery Address" required rows="3" style="padding:13px 16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;resize:vertical;" onfocus="this.style.borderColor='rgba(56,189,248,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'"></textarea>
+                <button type="submit" class="btn-confirm-store" style="margin-top:4px;">✓ Confirm Order</button>
+                <button type="button" onclick="closeOrder()" class="btn-cancel">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="authOverlay" class="modal-overlay">
+        <div class="modal-box">
+            <button onclick="closeAuth()" class="btn-modal-close">✕</button>
+            <h2 id="authTitle" class="modal-title">Welcome back</h2>
+            <div class="input-group">
+                <input type="email" id="emailInp" placeholder="Email address">
+            </div>
+            <div class="input-group">
+                <input type="password" id="passInp" placeholder="Password">
+            </div>
+            <div class="auth-btn-group">
+                <button id="loginBtn" class="btn-login-primary">Sign In</button>
+                <button id="signUpBtn" class="btn-register hidden">Create Account</button>
+            </div>
+            <p onclick="switchToSignUp()" id="authSwitcher" class="auth-switcher">New here? Create an account →</p>
+        </div>
+    </div>
+
+    <div id="bottomNav">
+        <button class="nav-tab active" id="tab-home" onclick="switchPage('homePage');setActiveTab('tab-home')">
+            <span>🏠</span>
+            <div class="nav-tab-dot"></div>
+        </button>
+        <button class="nav-tab" id="tab-set" onclick="switchPage('setPage');setActiveTab('tab-set')">
+            <span>⚙️</span>
+            <div class="nav-tab-dot"></div>
+        </button>
+    </div>
+
+</div><!-- /#home-page -->
+
+
+<!-- CHECKOUT PAGE -->
+<div id="checkout-page">
+
+    <div class="checkout-wrap" id="checkoutWrap">
+
+        <button class="back-link" onclick="goHome()">← Back to Store</button>
+
+        <div class="summary-card" id="summaryCard">
+            <div class="skeleton summary-img" id="summaryImgWrap" style="min-height:64px;"></div>
+            <div style="flex:1;">
+                <div class="summary-name" id="summaryName">
+                    <div class="skeleton" style="height:18px;width:60%;border-radius:6px;"></div>
+                </div>
+                <div class="summary-price" id="summaryPrice">
+                    <div class="skeleton" style="height:14px;width:30%;border-radius:6px;margin-top:6px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-card" id="coFormCard">
+            <div class="form-title">Complete Order</div>
+            <p class="form-subtitle">Fill in your details and we will deliver to your door.</p>
+
+            <p class="section-label">Personal Info</p>
+            <div class="field-row">
+                <div class="field">
+                    <label>Full Name *</label>
+                    <input type="text" id="custName" class="inp" placeholder="e.g. Enter name" required>
+                </div>
+                <div class="field">
+                    <label>Phone Number *</label>
+                    <input type="tel" id="custPhone" class="inp" placeholder="01XXXXXXXXX" required>
+                </div>
+            </div>
+
+            <p class="section-label">Delivery Address</p>
+            <div class="field-row">
+                <div class="field">
+                    <label>District (Jela) *</label>
+                    <div class="sel-wrap">
+                        <select id="districtSel" class="sel" onchange="populateThana()">
+                            <option value="">— Select District —</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Sub-district (Thana) *</label>
+                    <div class="sel-wrap">
+                        <select id="thanaSel" class="sel" disabled>
+                            <option value="">— Select Thana —</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="field-row single">
+                <div class="field">
+                    <label>Village / Area (Gram) *</label>
+                    <input type="text" id="custVillage" class="inp" placeholder="Enter your village or area name">
+                </div>
+            </div>
+            <div class="field-row single">
+                <div class="field">
+                    <label>Full Address (House / Road details)</label>
+                    <input type="text" id="custAddress" class="inp" placeholder="Optional — house no., road, landmark">
+                </div>
+            </div>
+
+            <button class="btn-confirm" id="confirmBtn" onclick="submitOrder()">✓ Confirm Order</button>
+            <div id="co-errorMsg"></div>
+        </div>
+
+        <div id="successView" class="form-card">
+            <div class="success-icon">✓</div>
+            <div class="success-title">Order Placed!</div>
+            <p class="success-sub">Thank you for your order.<br>We will contact you shortly to confirm delivery.</p>
+            <button class="btn-back-home" onclick="goHome()">← Back to Store</button>
+        </div>
+
+    </div>
+
+</div><!-- /#checkout-page -->
+
+
+<!-- FIREBASE MODULE -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import {
+        getFirestore, collection, addDoc, onSnapshot,
+        query, orderBy, where, limit, deleteDoc, doc, getDoc, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import {
+        getAuth, createUserWithEmailAndPassword,
+        signInWithEmailAndPassword, onAuthStateChanged, signOut
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyC4Qtgr9LIsueJm4KKZ0fTEQllit1oVadE",
+        authDomain: "luxefina-d3099.firebaseapp.com",
+        projectId: "luxefina-d3099",
+        storageBucket: "luxefina-d3099.firebasestorage.app",
+        messagingSenderId: "572485053299",
+        appId: "1:572485053299:web:6641de2e5322c4140d7306"
+    };
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    // Expose to non-module scripts
+    window._auth = auth;
+    window._db   = db;
+
+    const grid      = document.getElementById('productGrid');
+    const adminList = document.getElementById('adminProductList');
+
+    // ── ORDER STATUS NOTIFICATION
+    const showStatusBox = (message, isConfirm) => {
+        const box  = document.getElementById('order-status-box');
+        const text = document.getElementById('status-text');
+        const date = document.getElementById('status-date');
+        text.innerText   = message;
+        text.style.color = isConfirm ? '#34d399' : '#f87171';
+        date.innerText   = new Date().toLocaleString();
+        box.style.display = 'block';
+        gsap.killTweensOf(box);
+        gsap.fromTo(box, { x: 120, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: 'power3.out' });
+        setTimeout(() => {
+            gsap.to(box, { x: 120, opacity: 0, duration: 0.5, ease: 'power2.in', onComplete: () => { box.style.display = 'none'; } });
+        }, 8000);
+    };
+
+    // ── ORDER STATUS LISTENER
+    let orderUnsubscribe = null;
+    const attachOrderListener = (uid) => {
+        if (orderUnsubscribe) { orderUnsubscribe(); orderUnsubscribe = null; }
+        const ordersQuery = query(
+            collection(db, 'orders'),
+            where('uid', '==', uid),
+            orderBy('createdAt', 'desc'),
+            limit(1)
+        );
+        orderUnsubscribe = onSnapshot(ordersQuery, (snapshot) => {
+            snapshot.forEach((docSnap) => {
+                const orderData = docSnap.data();
+                if (orderData.status === 'confirmed') {
+                    showStatusBox('Apnar order ti confirm hoyeche!', true);
+                } else if (orderData.status === 'rejected') {
+                    showStatusBox('Dukhkhito, apnar order ti confirm hoy ni.', false);
+                }
+            });
+        });
+    };
+
+    // ── PRODUCTS (store)
+    onSnapshot(query(collection(db, "products"), orderBy("createdAt", "desc")), (snap) => {
+        grid.innerHTML = "";
+        adminList.innerHTML = "";
+
+        if (snap.empty) {
+            grid.innerHTML = `<div class="empty-state"><div class="icon">✦</div><p>No products yet. Check back soon.</p></div>`;
+        }
+
+        snap.forEach(documentObj => {
+            const p  = documentObj.data();
+            const id = documentObj.id;
+
+            const discountTag = p.discount ? `<div class="discount-badge">−${p.discount}%</div>` : '';
+            const descHtml    = p.description ? `<p class="card-desc">${p.description}</p>` : '';
+
+            const card = document.createElement('div');
+            card.className = 'product-card reveal';
+            card.innerHTML = `
+                ${discountTag}
+                <div class="card-img-wrap">
+                    <img src="${p.image}" alt="${p.name}" loading="lazy">
+                </div>
+                <div class="card-body">
+                    <div class="card-name">${p.name}</div>
+                    ${descHtml}
+                    <div class="card-price">$${p.originalPrice}</div>
+                    <button class="btn-order" onclick="showCheckout('${id}')">Order Now</button>
+                </div>`;
+            grid.appendChild(card);
+
+            gsap.fromTo(card,
+                { opacity: 0, y: 40, scale: 0.97 },
+                { opacity: 1, y: 0, scale: 1, duration: 0.7, delay: snap.docs.indexOf(documentObj) * 0.08, ease: "power3.out" }
+            );
+
+            adminList.innerHTML += `
+                <div class="manage-item">
+                    <div style="display:flex;align-items:center;gap:14px;">
+                        <img src="${p.image}" alt="${p.name}">
+                        <span style="font-size:14px;">${p.name}</span>
+                    </div>
+                    <button onclick="deleteProduct('${id}')" class="btn-delete">Delete</button>
+                </div>`;
+        });
+    });
+
+    window.deleteProduct = async (id) => {
+        if (confirm("Delete this product?")) {
+            try { await deleteDoc(doc(db, "products", id)); }
+            catch (e) { alert("Error: " + e.message); }
+        }
+    };
+
+    document.getElementById('uploadBtn').onclick = async () => {
+        const name     = document.getElementById('prodName').value;
+        const price    = document.getElementById('prodPrice').value;
+        const discount = document.getElementById('prodDiscount').value;
+        const img      = document.getElementById('prodImgUrl').value;
+        const desc     = document.getElementById('prodDesc').value.trim();
+        if (name && price && img) {
+            const btn = document.getElementById('uploadBtn');
+            btn.textContent = 'Publishing…';
+            await addDoc(collection(db, "products"), {
+                name, originalPrice: Number(price), discount: Number(discount),
+                image: img, description: desc, createdAt: new Date()
+            });
+            btn.textContent = '✦ Publish Product';
+            ['prodName','prodPrice','prodDiscount','prodImgUrl','prodDesc'].forEach(id => document.getElementById(id).value = '');
+        }
+    };
+
+    // ── ORDER MODAL (legacy)
+    window.openOrder = (name) => {
+        document.getElementById('orderItemName').value = name;
+        const overlay = document.getElementById('orderOverlay');
+        overlay.classList.add('show');
+        gsap.fromTo(overlay.querySelector('.order-box'),
+            { opacity: 0, y: 30, scale: 0.95 },
+            { opacity: 1, y: 0,  scale: 1, duration: 0.45, ease: "power3.out" }
+        );
+    };
+    window.closeOrder = () => {
+        const overlay = document.getElementById('orderOverlay');
+        gsap.to(overlay.querySelector('.order-box'), {
+            opacity: 0, y: 20, scale: 0.96, duration: 0.3, ease: "power2.in",
+            onComplete: () => overlay.classList.remove('show')
+        });
+    };
+
+    // ── AUTH STATE
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById('loggedInContent').classList.remove('hidden');
+            document.getElementById('navLoginBtn').classList.add('hidden');
+            document.getElementById('navUserArea').classList.remove('hidden');
+            const initial = user.email[0].toUpperCase();
+            document.getElementById('navInitial').innerText       = initial;
+            document.getElementById('avatarBig').innerText        = initial;
+            document.getElementById('userEmailDisplay').innerText = user.email;
+            attachOrderListener(user.uid);
+        } else {
+            if (orderUnsubscribe) { orderUnsubscribe(); orderUnsubscribe = null; }
+        }
+    });
+
+    // ── FIX 1: OPEN AUTH — any user can sign in or sign up (no email restriction)
+    document.getElementById('loginBtn').onclick = async () => {
+        try {
+            await signInWithEmailAndPassword(
+                auth,
+                document.getElementById('emailInp').value,
+                document.getElementById('passInp').value
+            );
+            closeAuth();
+        } catch (e) {
+            alert(e.message);
+        }
+    };
+
+    document.getElementById('signUpBtn').onclick = async () => {
+        try {
+            await createUserWithEmailAndPassword(
+                auth,
+                document.getElementById('emailInp').value,
+                document.getElementById('passInp').value
+            );
+            closeAuth();
+        } catch (e) {
+            alert(e.message);
+        }
+    };
+
+    window.handleLogout = async () => {
+        await signOut(auth);
+        document.getElementById('loggedInContent').classList.add('hidden');
+        document.getElementById('navLoginBtn').classList.remove('hidden');
+        document.getElementById('navUserArea').classList.add('hidden');
+        switchPage('homePage');
+    };
+
+    // ── CHECKOUT: load product & submit order
+    window.showCheckout = async (productId) => {
+        document.getElementById('home-page').style.display  = 'none';
+        const coPage = document.getElementById('checkout-page');
+        coPage.classList.add('co-active');
+
+        document.getElementById('summaryCard').innerHTML = `
+            <div class="skeleton summary-img" style="min-height:64px;"></div>
+            <div style="flex:1;">
+                <div class="summary-name"><div class="skeleton" style="height:18px;width:60%;border-radius:6px;"></div></div>
+                <div class="summary-price"><div class="skeleton" style="height:14px;width:30%;border-radius:6px;margin-top:6px;"></div></div>
+            </div>`;
+        document.getElementById('coFormCard').style.display  = 'block';
+        document.getElementById('successView').style.display = 'none';
+        document.getElementById('co-errorMsg').style.display = 'none';
+        const btn = document.getElementById('confirmBtn');
+        btn.disabled    = false;
+        btn.textContent = '✓ Confirm Order';
+
+        window._currentProductId   = productId;
+        window._currentProductData = null;
+
+        gsap.fromTo('#checkoutWrap', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out", delay: 0.1 });
+
+        try {
+            const snap = await getDoc(doc(db, "products", productId));
+            if (snap.exists()) {
+                window._currentProductData = snap.data();
+                renderCheckoutSummary(window._currentProductData);
+            } else {
+                coShowError("Product not found. Please go back and try again.");
+            }
+        } catch (e) {
+            coShowError("Could not load product: " + e.message);
+        }
+    };
+
+    function renderCheckoutSummary(p) {
+        const card      = document.getElementById('summaryCard');
+        const discBadge = p.discount ? `<span class="summary-badge">−${p.discount}%</span>` : '';
+        card.innerHTML  = `
+            <img src="${p.image}" alt="${p.name}" class="summary-img">
+            <div>
+                <div class="summary-name">${p.name}${discBadge}</div>
+                <div class="summary-price">$${p.originalPrice}</div>
+                ${p.description ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.5;">${p.description}</div>` : ''}
+            </div>`;
+        gsap.fromTo(card, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" });
+    }
+
+    window.submitOrder = async () => {
+        const name     = document.getElementById('custName').value.trim();
+        const phone    = document.getElementById('custPhone').value.trim();
+        const district = document.getElementById('districtSel').value;
+        const thana    = document.getElementById('thanaSel').value;
+        const village  = document.getElementById('custVillage').value.trim();
+        const address  = document.getElementById('custAddress').value.trim();
+
+        if (!name || !phone || !district || !thana || !village) {
+            coShowInlineError("Please fill in all required fields (*).");
+            return;
+        }
+        if (!/^01[3-9]\d{8}$/.test(phone)) {
+            coShowInlineError("Please enter a valid Bangladeshi phone number (e.g. 01XXXXXXXXX).");
+            return;
+        }
+
+        const btn = document.getElementById('confirmBtn');
+        btn.disabled    = true;
+        btn.textContent = 'Placing Order…';
+
+        const productId   = window._currentProductId;
+        const productData = window._currentProductData;
+        const currentUid  = auth.currentUser ? auth.currentUser.uid : null;
+
+        try {
+            await addDoc(collection(db, "orders"), {
+                productId    : productId,
+                productName  : productData?.name          || '',
+                productPrice : productData?.originalPrice || 0,
+                productImage : productData?.image         || '',
+                customerName : name,
+                customerPhone: phone,
+                district, thana, village,
+                fullAddress  : address,
+                uid          : currentUid || null,
+                status       : 'pending',
+                createdAt    : serverTimestamp(),
+            });
+
+            document.getElementById('coFormCard').style.display  = 'none';
+            document.getElementById('summaryCard').style.display = 'none';
+            const sv = document.getElementById('successView');
+            sv.style.display = 'block';
+            gsap.fromTo(sv, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" });
+
+        } catch (e) {
+            btn.disabled    = false;
+            btn.textContent = '✓ Confirm Order';
+            coShowInlineError("Error placing order: " + e.message);
+        }
+    };
+
+    function coShowError(msg) {
+        document.getElementById('coFormCard').innerHTML =
+            `<p style="color:#ff6b83;font-size:14px;text-align:center;">${msg}</p>
+             <button class="btn-back-home" onclick="goHome()" style="margin-top:20px;">← Back to Store</button>`;
+    }
+    function coShowInlineError(msg) {
+        const el = document.getElementById('co-errorMsg');
+        el.textContent   = msg;
+        el.style.display = 'block';
+        gsap.fromTo(el, { opacity: 0, y: -6 }, { opacity: 1, y: 0, duration: 0.3 });
+    }
+</script>
+
+
+<!-- NON-MODULE SCRIPTS -->
+<script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    window.addEventListener('scroll', () => {
+        document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 30);
+    });
+
+    gsap.timeline({ delay: 0.1 })
+        .from('.hero-eyebrow', { opacity: 0, y: 20, duration: 0.7, ease: "power3.out" })
+        .from('.hero-title',   { opacity: 0, y: 30, duration: 0.8, ease: "power3.out" }, "-=0.4")
+        .from('.hero-sub',     { opacity: 0, y: 20, duration: 0.7, ease: "power3.out" }, "-=0.5");
+
+    gsap.from('#bottomNav', { opacity: 0, y: 30, duration: 0.8, delay: 0.5, ease: "power3.out" });
+
+    window.goHome = () => {
+        const coPage = document.getElementById('checkout-page');
+        gsap.to('#checkoutWrap', { opacity: 0, y: 20, duration: 0.35, ease: "power2.in", onComplete: () => {
+            coPage.classList.remove('co-active');
+            document.getElementById('home-page').style.display = '';
+            gsap.fromTo('#home-page', { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" });
+        }});
+    };
+
+    // ── FIX 2: ADMIN PASSWORD GATE — prompt() instead of Firebase email check
+    function switchPage(id) {
+        if (id === 'adminPage') {
+            const entered = prompt("Enter Admin Password:");
+            if (entered !== '9192415') {
+                if (entered !== null) {
+                    // Only alert if they typed something wrong (not if they cancelled)
+                    alert("Incorrect password. Access denied.");
+                }
+                return;
+            }
+        }
+        document.querySelectorAll('.page').forEach(p => {
+            gsap.to(p, { opacity: 0, y: -10, duration: 0.25, ease: "power2.in",
+                onComplete: () => p.classList.remove('page-active') });
+        });
+        setTimeout(() => {
+            const target = document.getElementById(id);
+            target.classList.add('page-active');
+            gsap.fromTo(target, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" });
+            const hero = document.getElementById('heroSection');
+            if (hero) hero.style.display = id === 'homePage' ? 'block' : 'none';
+        }, 260);
+    }
+
+    function setActiveTab(tabId) {
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(tabId)?.classList.add('active');
+    }
+
+    function showAuth() {
+        const overlay = document.getElementById('authOverlay');
+        overlay.classList.add('show');
+        gsap.fromTo(overlay.querySelector('.modal-box'),
+            { opacity: 0, y: 30, scale: 0.95 },
+            { opacity: 1, y: 0,  scale: 1, duration: 0.45, ease: "power3.out" }
+        );
+    }
+    function closeAuth() {
+        const overlay = document.getElementById('authOverlay');
+        gsap.to(overlay.querySelector('.modal-box'), {
+            opacity: 0, y: 20, scale: 0.96, duration: 0.3, ease: "power2.in",
+            onComplete: () => overlay.classList.remove('show')
+        });
+    }
+
+    function switchToSignUp() {
+        document.getElementById('authTitle').textContent    = 'Create account';
+        document.getElementById('signUpBtn').classList.remove('hidden');
+        document.getElementById('loginBtn').classList.add('hidden');
+        document.getElementById('authSwitcher').textContent = 'Already have an account? Sign in →';
+        document.getElementById('authSwitcher').onclick     = switchToLogin;
+    }
+    function switchToLogin() {
+        document.getElementById('authTitle').textContent    = 'Welcome back';
+        document.getElementById('loginBtn').classList.remove('hidden');
+        document.getElementById('signUpBtn').classList.add('hidden');
+        document.getElementById('authSwitcher').textContent = 'New here? Create an account →';
+        document.getElementById('authSwitcher').onclick     = switchToSignUp;
+    }
+
+    document.addEventListener('mousemove', (e) => {
+        const cards = document.querySelectorAll('.product-card');
+        const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+        const dx = (e.clientX - cx) / cx, dy = (e.clientY - cy) / cy;
+        cards.forEach((card, i) => {
+            const factor = 0.5 + (i % 3) * 0.15;
+            gsap.to(card, { rotateY: dx * 2 * factor, rotateX: -dy * 1.5 * factor, duration: 1.2, ease: "power1.out", transformPerspective: 1000 });
+        });
+    });
+
+    function searchProduct() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        document.querySelectorAll('.product-card').forEach(card => {
+            const name = card.querySelector('.card-name')?.textContent.toLowerCase() || '';
+            const show = name.includes(q);
+            gsap.to(card, { opacity: show ? 1 : 0.15, scale: show ? 1 : 0.96, duration: 0.3, ease: "power2.out" });
+        });
+    }
+
+    window.switchPage     = switchPage;
+    window.showAuth       = showAuth;
+    window.closeAuth      = closeAuth;
+    window.switchToSignUp = switchToSignUp;
+    window.setActiveTab   = setActiveTab;
+    window.searchProduct  = searchProduct;
+
+
+    // ── Bangladesh Districts & Thanas
+    const BD_DISTRICTS = {
+        "Dhaka": ["Dhanmondi","Gulshan","Mirpur","Mohammadpur","Motijheel","Ramna","Sabujbagh","Savar","Tejgaon","Uttara","Keraniganj","Dohar","Nawabganj","Lalbagh","Kadamtali","Sutrapur"],
+        "Chittagong": ["Agrabad","Bayazid Bostami","Chandgaon","Double Mooring","Hathazari","Karnaphuli","Kotwali","Lohagara","Mirsharai","Pahartali","Panchlaish","Patiya","Rangunia","Raozan","Sandwip","Sitakunda"],
+        "Sylhet": ["Balaganj","Beanibazar","Bishwanath","Companiganj","Dakshin Surma","Fenchuganj","Golapganj","Gowainghat","Jaintiapur","Kanaighat","Osmani Nagar","South Surma","Sylhet Sadar","Zakiganj"],
+        "Rajshahi": ["Bagha","Bagmara","Charghat","Durgapur","Godagari","Mohanpur","Paba","Puthia","Rajshahi Sadar","Tanore"],
+        "Khulna": ["Batiaghata","Dacope","Daulatpur","Dighalia","Dumuria","Khalishpur","Khan Jahan Ali","Khulna Sadar","Koyra","Paikgachha","Phultala","Rupsha","Sonadanga","Terokhada"],
+        "Barisal": ["Agailjhara","Babuganj","Bakerganj","Banaripara","Barisal Sadar","Gaurnadi","Hizla","Mehendiganj","Muladi","Wazirpur"],
+        "Rangpur": ["Badarganj","Gangachara","Kaunia","Mithapukur","Pirgacha","Pirganj","Rangpur Sadar","Taraganj"],
+        "Mymensingh": ["Bhaluka","Dhobaura","Fulbaria","Gaffargaon","Gauripur","Haluaghat","Ishwarganj","Muktagachha","Mymensingh Sadar","Nandail","Phulpur","Trishal"],
+        "Gazipur": ["Gazipur Sadar","Kaliakair","Kaliganj","Kapasia","Sreepur","Tongi"],
+        "Narayanganj": ["Araihazar","Bandar","Narayanganj Sadar","Rupganj","Sonargaon"],
+        "Tangail": ["Basail","Bhuapur","Delduar","Dhanbari","Ghatail","Gopalpur","Kalihati","Madhupur","Mirzapur","Nagarpur","Sakhipur","Tangail Sadar"],
+        "Comilla": ["Barura","Brahmanpara","Burichang","Chandina","Chauddagram","Comilla Sadar","Daudkandi","Debidwar","Homna","Laksam","Lalmai","Meghna","Monohorgonj","Muradnagar","Nangalkot","Titas"],
+        "Noakhali": ["Begumganj","Chatkhil","Companiganj","Hatiya","Kabirhat","Noakhali Sadar","Senbagh","Sonaimuri","Subarnachar"],
+        "Feni": ["Chhagalnaiya","Daganbhuiyan","Feni Sadar","Fulgazi","Parshuram","Sonagazi"],
+        "Cumilla": ["Barura","Burichang","Chandina","Comilla Sadar South","Daudkandi","Debidwar","Homna","Laksam"],
+        "Cox's Bazar": ["Chakaria","Cox's Bazar Sadar","Kutubdia","Maheshkhali","Pekua","Ramu","Teknaf","Ukhia"],
+        "Jessore": ["Abhaynagar","Bagharpara","Chaugachha","Jessore Sadar","Jhikargachha","Keshabpur","Manirampur","Sharsha"],
+        "Dinajpur": ["Biral","Birampur","Birganj","Bochaganj","Chirirbandar","Dinajpur Sadar","Fulbari","Ghoraghat","Hakimpur","Kaharole","Khansama","Nawabganj","Parbatipur"],
+        "Bogra": ["Adamdighi","Bogra Sadar","Dhunot","Dupchanchia","Gabtali","Kahaloo","Nandigram","Sariakandi","Shajahanpur","Sherpur","Shibganj","Sonatala"],
+        "Pabna": ["Atgharia","Bera","Bhangura","Chatmohar","Faridpur","Ishwardi","Pabna Sadar","Santhia","Sujanagar"],
+        "Sirajganj": ["Belkuchi","Chauhali","Kamarkhanda","Kazipur","Raiganj","Shahjadpur","Sirajganj Sadar","Tarash","Ullahpara"],
+        "Natore": ["Bagatipara","Baraigram","Gurudaspur","Lalpur","Natore Sadar","Singra"],
+        "Chapai Nawabganj": ["Bholahat","Chapai Nawabganj Sadar","Gomastapur","Nachole","Shibganj"],
+        "Naogaon": ["Atrai","Badalgachi","Dhamoirhat","Manda","Mahadebpur","Naogaon Sadar","Niamatpur","Patnitala","Porsha","Raninagar","Sapahar"],
+        "Jaipurhat": ["Akkelpur","Jaipurhat Sadar","Khetlal","Panchbibi","Zia Nagar"],
+        "Kushtia": ["Bheramara","Daulatpur","Khoksa","Kumarkhali","Kushtia Sadar","Mirpur"],
+        "Meherpur": ["Gangni","Meherpur Sadar","Mujibnagar"],
+        "Chuadanga": ["Alamdanga","Chuadanga Sadar","Damurhuda","Jibannagar"],
+        "Jhenaidah": ["Harinakunda","Jhenaidah Sadar","Kaliganj","Kotchandpur","Maheshpur","Shailkupa"],
+        "Magura": ["Magura Sadar","Mohammadpur","Shalikha","Sreepur"],
+        "Narail": ["Kalia","Lohagara","Narail Sadar"],
+        "Satkhira": ["Assasuni","Debhata","Kalaroa","Kaliganj","Satkhira Sadar","Shyamnagar","Tala"],
+        "Bagerhat": ["Bagerhat Sadar","Chitalmari","Fakirhat","Kachua","Mollahat","Mongla","Morrelganj","Rampal","Sarankhola"],
+        "Pirojpur": ["Bhandaria","Kawkhali","Mathbaria","Nazirpur","Pirojpur Sadar","Zianagar"],
+        "Jhalokathi": ["Jhalokathi Sadar","Kathalia","Nalchity","Rajapur"],
+        "Barguna": ["Amtali","Bamna","Barguna Sadar","Betagi","Patharghata","Taltali"],
+        "Patuakhali": ["Bauphal","Dashmina","Dumki","Galachipa","Kalapara","Mirzaganj","Patuakhali Sadar","Rangabali"],
+        "Bhola": ["Bhola Sadar","Burhanuddin","Char Fasson","Daulatkhan","Lalmohan","Manpura","Tazumuddin"],
+        "Lakshmipur": ["Kamalnagar","Lakshmipur Sadar","Raipur","Ramganj","Ramgati"],
+        "Chandpur": ["Chandpur Sadar","Faridganj","Haimchar","Haziganj","Kachua","Matlab Dakshin","Matlab Uttar","Shahrasti"],
+        "Brahmanbaria": ["Akhaura","Ashuganj","Bancharampur","Bijoynagar","Brahmanbaria Sadar","Kasba","Nabinagar","Nasirnagar","Sarail"],
+        "Habiganj": ["Ajmiriganj","Baniachong","Bahubal","Chunarughat","Habiganj Sadar","Lakhai","Madhabpur","Nabiganj"],
+        "Moulvibazar": ["Barlekha","Juri","Kamalganj","Kulaura","Moulvibazar Sadar","Rajnagar","Sreemangal"],
+        "Sunamganj": ["Bishwambarpur","Chhatak","Derai","Dharmapasha","Dowarabazar","Jagannathpur","Jamalganj","Shalla","South Sunamganj","Sulla","Sunamganj Sadar","Tahirpur"],
+        "Netrokona": ["Atpara","Barhatta","Durgapur","Kalmakanda","Kendua","Khaliajuri","Madan","Mohanganj","Netrokona Sadar","Purbadhala"],
+        "Kishoreganj": ["Austagram","Bajitpur","Bhairab","Hossainpur","Itna","Karimganj","Katiadi","Kishoreganj Sadar","Kuliarchar","Mithamain","Nikli","Pakundia","Tarail"],
+        "Sherpur": ["Jhenaigati","Nakla","Nalitabari","Sherpur Sadar","Sreebardi"],
+        "Jamalpur": ["Bakshiganj","Dewanganj","Islampur","Jamalpur Sadar","Madarganj","Melandaha","Sarishabari"],
+        "Gaibandha": ["Fulchhari","Gaibandha Sadar","Gobindaganj","Palashbari","Sadullapur","Saghata","Sundarganj"],
+        "Nilphamari": ["Dimla","Domar","Jaldhaka","Kishoreganj","Nilphamari Sadar","Saidpur"],
+        "Lalmonirhat": ["Aditmari","Hatibandha","Kaliganj","Lalmonirhat Sadar","Patgram"],
+        "Kurigram": ["Bhurungamari","Char Rajibpur","Chilmari","Fulbari","Kurigram Sadar","Nageshwari","Phulbari","Rajarhat","Roumari","Ulipur"],
+        "Thakurgaon": ["Baliadangi","Haripur","Pirganj","Ranisankail","Thakurgaon Sadar"],
+        "Panchagarh": ["Atwari","Boda","Debiganj","Panchagarh Sadar","Tetulia"],
+        "Bandarban": ["Ali Kadam","Bandarban Sadar","Lama","Naikhongchhari","Rowangchhari","Ruma","Thanchi"],
+        "Rangamati": ["Baghaichhari","Barkal","Belaichhari","Juraichhari","Kaptai","Kaukhali","Langadu","Naniarchar","Rajasthali","Rangamati Sadar"],
+        "Khagrachhari": ["Dighinala","Guimara","Khagrachhari Sadar","Lakshmichhari","Mahalchhari","Manikchhari","Matiranga","Panchhari","Ramgarh"],
+    };
+
+    const districtSel = document.getElementById('districtSel');
+    Object.keys(BD_DISTRICTS).sort().forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d; opt.textContent = d;
+        districtSel.appendChild(opt);
+    });
+
+    window.populateThana = () => {
+        const thanaSel = document.getElementById('thanaSel');
+        const district = districtSel.value;
+        thanaSel.innerHTML = '<option value="">— Select Thana —</option>';
+        if (district && BD_DISTRICTS[district]) {
+            BD_DISTRICTS[district].forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t; opt.textContent = t;
+                thanaSel.appendChild(opt);
+            });
+            thanaSel.disabled = false;
+        } else {
+            thanaSel.disabled = true;
+        }
+    };
+</script>
+
+</body>
+</html>
