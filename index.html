@@ -1120,6 +1120,7 @@
         const currentUid  = auth.currentUser ? auth.currentUser.uid : null;
 
         try {
+            // ── 1. Save order to Firebase Firestore (unchanged)
             await addDoc(collection(db, "orders"), {
                 productId    : productId,
                 productName  : productData?.name          || '',
@@ -1134,6 +1135,26 @@
                 createdAt    : serverTimestamp(),
             });
 
+            // ── 2. Send order details to Formspree silently in the background
+            fetch('https://formspree.io/f/xzdowodp', {
+                method : 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept'      : 'application/json',
+                },
+                body: JSON.stringify({
+                    'Product Name' : productData?.name          || '',
+                    'Product Price': productData?.originalPrice || 0,
+                    'Customer Name': name,
+                    'Phone'        : phone,
+                    'District'     : district,
+                    'Thana'        : thana,
+                    'Village'      : village,
+                    'Full Address' : address,
+                }),
+            }).catch(() => {}); // silent — never block the UI on Formspree errors
+
+            // ── 3. Show success view (unchanged)
             document.getElementById('coFormCard').style.display  = 'none';
             document.getElementById('summaryCard').style.display = 'none';
             const sv = document.getElementById('successView');
@@ -1191,7 +1212,6 @@
             const entered = prompt("Enter Admin Password:");
             if (entered !== '9192415') {
                 if (entered !== null) {
-                    // Only alert if they typed something wrong (not if they cancelled)
                     alert("Incorrect password. Access denied.");
                 }
                 return;
@@ -1359,4 +1379,4 @@
 </script>
 
 </body>
-</html>
+                    </html>
